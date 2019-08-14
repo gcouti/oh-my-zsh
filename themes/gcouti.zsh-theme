@@ -13,7 +13,24 @@ ZSH_THEME_GIT_PROMPT_RENAMED="%{$fg[yellow]%}r%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_DELETED="%{$fg_bold[red]%}x%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_UNTRACKED="%{$fg[red]%}✚%{$reset_color%}"
 ZSH_THEME_GIT_PROMPT_MODIFIED="%{$fg[yellow]%}c"
-   
+
+# Begin a segment
+# Takes two arguments, background and foreground. Both can be omitted,
+# rendering default background/foreground.
+prompt_segment() {
+  local bg fg
+  [[ -n $1 ]] && bg="%K{$1}" || bg="%k"
+  [[ -n $2 ]] && fg="%F{$2}" || fg="%f"
+  if [[ $CURRENT_BG != 'NONE' && $1 != $CURRENT_BG ]]; then
+    echo -n " %{$bg%F{$CURRENT_BG}%}$SEGMENT_SEPARATOR%{$fg%} "
+  else
+    echo -n "%{$bg%}%{$fg%} "
+  fi  
+  CURRENT_BG=$1
+  [[ -n $3 ]] && echo -n $3
+}
+ 
+
 git_status () {
   local _branch="$(current_branch)"
   if [[ "$_branch" != "" ]]; then
@@ -25,6 +42,14 @@ prompt_time () {
   echo "[%*]"
 }
 
-PROMPT='%{$fg[cyan]%}%1~%{$reset_color%} %{$fg[cyan]%}»%{$reset_color%} '
+# Virtualenv: current working virtualenv
+prompt_virtualenv() {
+    local virtualenv_path="$VIRTUAL_ENV"
+    if [[ -n $virtualenv_path && -n $VIRTUAL_ENV_DISABLE_PROMPT ]]; then
+        prompt_segment blue black "(`basename $virtualenv_path`)"
+    fi
+}
+
+PROMPT='%{$fg[cyan]%}%1~%{$reset_color%} '
 RPS1='$(git_status)$(prompt_time)$EPS1'
 
